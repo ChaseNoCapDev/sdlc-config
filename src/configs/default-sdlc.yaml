@@ -1,0 +1,453 @@
+version: 1.0.0
+workflows:
+  - id: standard-sdlc
+    name: Standard Software Development Lifecycle
+    description: A comprehensive SDLC workflow for software projects
+    version: 1.0.0
+    initialPhase: requirements
+    phases:
+      - id: requirements
+        name: Requirements Gathering
+        description: Gather and analyze project requirements
+        objectives:
+          - Understand business needs and goals
+          - Define functional requirements
+          - Define non-functional requirements
+          - Identify constraints and dependencies
+        deliverables:
+          - Requirements document
+          - Use case diagrams
+          - User stories
+          - Acceptance criteria
+        entryConditions:
+          - Project charter approved
+          - Stakeholders identified
+          - Initial scope defined
+        exitConditions:
+          - Requirements documented and reviewed
+          - Stakeholder sign-off obtained
+          - Requirements baselined
+        tasks:
+          - id: req-1
+            name: Conduct stakeholder interviews
+            type: manual
+            required: true
+            estimatedDuration: 3 days
+            tools:
+              - Interview templates
+              - Recording tools
+          - id: req-2
+            name: Document functional requirements
+            type: manual
+            required: true
+            dependencies:
+              - req-1
+            estimatedDuration: 2 days
+            outputs:
+              - Functional requirements document
+          - id: req-3
+            name: Document non-functional requirements
+            type: manual
+            required: true
+            dependencies:
+              - req-1
+            estimatedDuration: 1 day
+            outputs:
+              - NFR document
+          - id: req-4
+            name: Requirements review
+            type: review
+            required: true
+            dependencies:
+              - req-2
+              - req-3
+            estimatedDuration: 1 day
+        nextPhases:
+          - design
+        requiresApproval: true
+
+      - id: design
+        name: System Design
+        description: Create system architecture and detailed design
+        objectives:
+          - Define system architecture
+          - Create detailed design documents
+          - Design data models
+          - Plan integration points
+        deliverables:
+          - Architecture document
+          - Design specifications
+          - Data models
+          - API specifications
+        entryConditions:
+          - Requirements approved
+          - Technical constraints identified
+          - Design team assigned
+        exitConditions:
+          - Design documents reviewed
+          - Architecture approved
+          - Design baselined
+        tasks:
+          - id: des-1
+            name: Create high-level architecture
+            type: manual
+            required: true
+            estimatedDuration: 3 days
+            tools:
+              - Architecture tools
+              - Diagramming tools
+          - id: des-2
+            name: Design data models
+            type: manual
+            required: true
+            estimatedDuration: 2 days
+            outputs:
+              - ERD diagrams
+              - Data dictionary
+          - id: des-3
+            name: Create API specifications
+            type: manual
+            required: true
+            dependencies:
+              - des-1
+            estimatedDuration: 2 days
+            outputs:
+              - API documentation
+              - OpenAPI specs
+          - id: des-4
+            name: Design review
+            type: review
+            required: true
+            dependencies:
+              - des-1
+              - des-2
+              - des-3
+            estimatedDuration: 1 day
+        nextPhases:
+          - implementation
+        requiresApproval: true
+
+      - id: implementation
+        name: Implementation
+        description: Develop the software solution
+        objectives:
+          - Implement features according to design
+          - Write unit tests
+          - Conduct code reviews
+          - Maintain code quality
+        deliverables:
+          - Source code
+          - Unit tests
+          - Code documentation
+          - Build artifacts
+        entryConditions:
+          - Design approved
+          - Development environment ready
+          - Team onboarded
+        exitConditions:
+          - All features implemented
+          - Unit tests passing
+          - Code reviews completed
+          - Build successful
+        tasks:
+          - id: impl-1
+            name: Set up development environment
+            type: automated
+            required: true
+            estimatedDuration: 1 day
+            tools:
+              - Docker
+              - CI/CD tools
+          - id: impl-2
+            name: Implement core features
+            type: manual
+            required: true
+            dependencies:
+              - impl-1
+            estimatedDuration: 10 days
+            outputs:
+              - Source code
+          - id: impl-3
+            name: Write unit tests
+            type: manual
+            required: true
+            dependencies:
+              - impl-2
+            estimatedDuration: 3 days
+            outputs:
+              - Test suites
+          - id: impl-4
+            name: Code review
+            type: review
+            required: true
+            dependencies:
+              - impl-2
+              - impl-3
+            estimatedDuration: 2 days
+        nextPhases:
+          - testing
+        requiresApproval: false
+
+      - id: testing
+        name: Testing
+        description: Comprehensive testing of the solution
+        objectives:
+          - Execute test plans
+          - Identify and track defects
+          - Verify requirements
+          - Ensure quality standards
+        deliverables:
+          - Test plans
+          - Test results
+          - Defect reports
+          - Test coverage reports
+        entryConditions:
+          - Code complete
+          - Test environment ready
+          - Test data prepared
+        exitConditions:
+          - All tests executed
+          - Critical defects resolved
+          - Test coverage targets met
+          - UAT sign-off
+        tasks:
+          - id: test-1
+            name: Execute integration tests
+            type: automated
+            required: true
+            estimatedDuration: 2 days
+            tools:
+              - Test automation tools
+          - id: test-2
+            name: Perform system testing
+            type: manual
+            required: true
+            estimatedDuration: 3 days
+            outputs:
+              - Test reports
+          - id: test-3
+            name: User acceptance testing
+            type: manual
+            required: true
+            dependencies:
+              - test-1
+              - test-2
+            estimatedDuration: 3 days
+          - id: test-4
+            name: Performance testing
+            type: automated
+            required: false
+            estimatedDuration: 2 days
+            tools:
+              - Load testing tools
+        nextPhases:
+          - deployment
+        requiresApproval: true
+
+      - id: deployment
+        name: Deployment
+        description: Deploy solution to production
+        objectives:
+          - Prepare production environment
+          - Deploy application
+          - Verify deployment
+          - Monitor initial operation
+        deliverables:
+          - Deployment package
+          - Deployment documentation
+          - Rollback plan
+          - Monitoring dashboards
+        entryConditions:
+          - Testing completed
+          - Deployment approval obtained
+          - Production environment ready
+        exitConditions:
+          - Application deployed successfully
+          - Health checks passing
+          - Monitoring configured
+          - Handover completed
+        tasks:
+          - id: dep-1
+            name: Prepare deployment package
+            type: automated
+            required: true
+            estimatedDuration: 1 day
+            tools:
+              - Build tools
+              - Container registry
+          - id: dep-2
+            name: Deploy to production
+            type: automated
+            required: true
+            dependencies:
+              - dep-1
+            estimatedDuration: 1 day
+            tools:
+              - Deployment tools
+              - Kubernetes
+          - id: dep-3
+            name: Verify deployment
+            type: manual
+            required: true
+            dependencies:
+              - dep-2
+            estimatedDuration: 1 day
+          - id: dep-4
+            name: Configure monitoring
+            type: automated
+            required: true
+            dependencies:
+              - dep-2
+            estimatedDuration: 1 day
+            tools:
+              - Monitoring tools
+        nextPhases:
+          - maintenance
+        requiresApproval: true
+
+      - id: maintenance
+        name: Maintenance
+        description: Ongoing maintenance and support
+        objectives:
+          - Monitor system health
+          - Address issues promptly
+          - Apply updates and patches
+          - Optimize performance
+        deliverables:
+          - Incident reports
+          - Change logs
+          - Performance reports
+          - Update packages
+        entryConditions:
+          - System deployed
+          - Support team trained
+          - Monitoring active
+        exitConditions:
+          - System decommissioned
+          - Replaced by new system
+        tasks:
+          - id: maint-1
+            name: Monitor system health
+            type: automated
+            required: true
+            estimatedDuration: ongoing
+            tools:
+              - Monitoring tools
+              - Alerting systems
+          - id: maint-2
+            name: Apply security patches
+            type: manual
+            required: true
+            estimatedDuration: as needed
+          - id: maint-3
+            name: Performance optimization
+            type: manual
+            required: false
+            estimatedDuration: as needed
+          - id: maint-4
+            name: Handle incidents
+            type: manual
+            required: true
+            estimatedDuration: as needed
+        nextPhases: []
+        requiresApproval: false
+
+    transitions:
+      - from: requirements
+        to: design
+        conditions:
+          - Requirements approved
+          - Budget approved
+        requiresApproval: true
+        approvers:
+          - Product Owner
+          - Technical Lead
+      - from: design
+        to: implementation
+        conditions:
+          - Design approved
+          - Resources available
+        requiresApproval: true
+        approvers:
+          - Architecture Board
+          - Technical Lead
+      - from: implementation
+        to: testing
+        conditions:
+          - Code complete
+          - Unit tests passing
+      - from: testing
+        to: deployment
+        conditions:
+          - All tests passed
+          - No critical defects
+        requiresApproval: true
+        approvers:
+          - QA Manager
+          - Product Owner
+      - from: deployment
+        to: maintenance
+        conditions:
+          - Deployment successful
+          - Monitoring active
+
+    globalSettings:
+      requireApprovalForTransitions: false
+      defaultApprovers:
+        - Project Manager
+      notificationChannels:
+        - email
+        - slack
+      timeoutSettings:
+        phaseTimeout: 30 days
+        taskTimeout: 7 days
+        approvalTimeout: 48 hours
+        warningThreshold: 80
+      integrations:
+        githubEnabled: true
+        slackEnabled: true
+        emailEnabled: true
+
+environments:
+  - name: development
+    description: Development environment settings
+    overrides:
+      requireApprovalForTransitions: false
+      timeoutSettings:
+        phaseTimeout: 60 days
+        approvalTimeout: 72 hours
+    featureFlags:
+      autoApproval: true
+      skipNonCriticalTasks: true
+    variables:
+      LOG_LEVEL: debug
+      ENABLE_METRICS: "true"
+
+  - name: production
+    description: Production environment settings
+    overrides:
+      requireApprovalForTransitions: true
+      defaultApprovers:
+        - Project Manager
+        - Technical Lead
+        - QA Manager
+      timeoutSettings:
+        phaseTimeout: 14 days
+        taskTimeout: 3 days
+        approvalTimeout: 24 hours
+        warningThreshold: 90
+    featureFlags:
+      autoApproval: false
+      skipNonCriticalTasks: false
+      enhancedMonitoring: true
+    variables:
+      LOG_LEVEL: info
+      ENABLE_METRICS: "true"
+      ALERT_THRESHOLD: "95"
+
+defaultWorkflow: standard-sdlc
+defaultEnvironment: development
+metadata:
+  author: metaGOTHIC Framework
+  version: 1.0.0
+  lastUpdated: 2024-01-01
