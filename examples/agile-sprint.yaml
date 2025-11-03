@@ -1,0 +1,287 @@
+# Agile Sprint Workflow Example
+#
+# This workflow follows a 2-week sprint cycle with:
+# - Sprint planning
+# - Daily development
+# - Sprint review and retrospective
+# - Continuous integration
+
+version: 1.0.0
+workflows:
+  - id: agile-sprint
+    name: Two-Week Agile Sprint
+    description: Standard Scrum sprint workflow
+    version: 1.0.0
+    initialPhase: sprint-planning
+    phases:
+      - id: sprint-planning
+        name: Sprint Planning
+        description: Plan the upcoming sprint
+        objectives:
+          - Review product backlog
+          - Define sprint goal
+          - Select user stories
+          - Break down into tasks
+        deliverables:
+          - Sprint backlog
+          - Sprint goal statement
+          - Task breakdown
+        entryConditions:
+          - Product backlog groomed
+          - Team available
+        exitConditions:
+          - Sprint goal agreed
+          - Tasks estimated
+          - Team committed
+        tasks:
+          - id: planning-1
+            name: Review backlog
+            type: manual
+            required: true
+            estimatedDuration: 1 hour
+          - id: planning-2
+            name: Define sprint goal
+            type: manual
+            required: true
+            dependencies:
+              - planning-1
+            estimatedDuration: 30 minutes
+          - id: planning-3
+            name: Select user stories
+            type: manual
+            required: true
+            dependencies:
+              - planning-2
+            estimatedDuration: 1 hour
+          - id: planning-4
+            name: Break down into tasks
+            type: manual
+            required: true
+            dependencies:
+              - planning-3
+            estimatedDuration: 1.5 hours
+          - id: planning-5
+            name: Estimate tasks
+            type: manual
+            required: true
+            dependencies:
+              - planning-4
+            estimatedDuration: 1 hour
+        nextPhases:
+          - development
+        requiresApproval: false
+
+      - id: development
+        name: Sprint Development
+        description: Two weeks of iterative development
+        objectives:
+          - Implement user stories
+          - Write automated tests
+          - Conduct code reviews
+          - Participate in daily standups
+        deliverables:
+          - Working software increment
+          - Updated tests
+          - Code reviews completed
+        entryConditions:
+          - Sprint planned
+          - Stories assigned
+        exitConditions:
+          - All committed stories done
+          - Tests passing
+          - Code merged
+        tasks:
+          - id: dev-1
+            name: Daily standup
+            type: manual
+            required: true
+            estimatedDuration: 15 minutes
+            outputs:
+              - Daily status updates
+          - id: dev-2
+            name: Implement user stories
+            type: manual
+            required: true
+            estimatedDuration: 8 days
+            tools:
+              - IDE
+              - Git
+          - id: dev-3
+            name: Write unit tests
+            type: manual
+            required: true
+            dependencies:
+              - dev-2
+            estimatedDuration: 2 days
+          - id: dev-4
+            name: Code review
+            type: review
+            required: true
+            dependencies:
+              - dev-2
+              - dev-3
+            estimatedDuration: 1 day
+          - id: dev-5
+            name: CI/CD pipeline
+            type: automated
+            required: true
+            dependencies:
+              - dev-4
+            estimatedDuration: 30 minutes
+            tools:
+              - GitHub Actions
+              - Jenkins
+        nextPhases:
+          - sprint-review
+        requiresApproval: false
+
+      - id: sprint-review
+        name: Sprint Review
+        description: Demonstrate completed work
+        objectives:
+          - Demo working software
+          - Gather stakeholder feedback
+          - Update product backlog
+        deliverables:
+          - Demo recording
+          - Feedback notes
+          - Updated backlog
+        entryConditions:
+          - Stories completed
+          - Demo prepared
+        exitConditions:
+          - Demo completed
+          - Feedback captured
+        tasks:
+          - id: review-1
+            name: Prepare demo
+            type: manual
+            required: true
+            estimatedDuration: 1 hour
+          - id: review-2
+            name: Conduct demo
+            type: manual
+            required: true
+            dependencies:
+              - review-1
+            estimatedDuration: 1 hour
+          - id: review-3
+            name: Gather feedback
+            type: manual
+            required: true
+            dependencies:
+              - review-2
+            estimatedDuration: 30 minutes
+          - id: review-4
+            name: Update backlog
+            type: manual
+            required: true
+            dependencies:
+              - review-3
+            estimatedDuration: 30 minutes
+        nextPhases:
+          - retrospective
+        requiresApproval: false
+
+      - id: retrospective
+        name: Sprint Retrospective
+        description: Reflect and improve
+        objectives:
+          - Discuss what went well
+          - Identify improvements
+          - Create action items
+        deliverables:
+          - Retrospective notes
+          - Action items for next sprint
+        entryConditions:
+          - Sprint review done
+        exitConditions:
+          - Action items defined
+          - Team committed to improvements
+        tasks:
+          - id: retro-1
+            name: What went well
+            type: manual
+            required: true
+            estimatedDuration: 20 minutes
+          - id: retro-2
+            name: What needs improvement
+            type: manual
+            required: true
+            estimatedDuration: 20 minutes
+          - id: retro-3
+            name: Create action items
+            type: manual
+            required: true
+            dependencies:
+              - retro-1
+              - retro-2
+            estimatedDuration: 20 minutes
+        nextPhases:
+          - sprint-planning
+        requiresApproval: false
+
+    transitions:
+      - from: sprint-planning
+        to: development
+        conditions:
+          - Sprint goal defined
+          - Tasks estimated
+      - from: development
+        to: sprint-review
+        conditions:
+          - Sprint end date reached
+          - Committed stories done
+      - from: sprint-review
+        to: retrospective
+        conditions:
+          - Demo completed
+      - from: retrospective
+        to: sprint-planning
+        conditions:
+          - Action items created
+
+    globalSettings:
+      requireApprovalForTransitions: false
+      defaultApprovers:
+        - Scrum Master
+        - Product Owner
+      notificationChannels:
+        - slack
+      timeoutSettings:
+        phaseTimeout: 14 days
+        taskTimeout: 2 days
+        approvalTimeout: 24 hours
+        warningThreshold: 80
+
+environments:
+  - name: development
+    description: Dev team environment
+    featureFlags:
+      autoApproval: true
+      dailyStandups: true
+    variables:
+      SPRINT_LENGTH_DAYS: "10"
+      STORY_POINTS_PER_DEV: "8"
+
+  - name: production
+    description: Production releases
+    overrides:
+      requireApprovalForTransitions: true
+    featureFlags:
+      autoApproval: false
+      enhancedMonitoring: true
+    variables:
+      SPRINT_LENGTH_DAYS: "10"
+      DEPLOYMENT_WINDOW: "friday-evening"
+
+defaultWorkflow: agile-sprint
+defaultEnvironment: development
+metadata:
+  author: metaGOTHIC Framework
+  version: 1.0.0
+  lastUpdated: 2025-01-01
+  tags:
+    - agile
+    - scrum
+    - sprints

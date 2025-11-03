@@ -1,0 +1,430 @@
+# CI/CD Pipeline Workflow Example
+#
+# Automated continuous integration and deployment workflow:
+# - Automated testing at every stage
+# - Progressive deployment (dev → staging → prod)
+# - Automated rollback capabilities
+# - Quality gates at each stage
+
+version: 1.0.0
+workflows:
+  - id: ci-cd-pipeline
+    name: Continuous Integration/Deployment Pipeline
+    description: Fully automated CI/CD workflow with quality gates
+    version: 1.0.0
+    initialPhase: commit
+    phases:
+      - id: commit
+        name: Code Commit
+        description: Developer commits code to version control
+        objectives:
+          - Trigger CI pipeline
+          - Run pre-commit hooks
+          - Create build artifact
+        deliverables:
+          - Git commit
+          - Build artifact
+        entryConditions:
+          - Code changes ready
+        exitConditions:
+          - Pre-commit checks pass
+          - Build successful
+        tasks:
+          - id: commit-1
+            name: Run pre-commit hooks
+            type: automated
+            required: true
+            estimatedDuration: 30 seconds
+            tools:
+              - pre-commit
+              - husky
+          - id: commit-2
+            name: Push to repository
+            type: manual
+            required: true
+            dependencies:
+              - commit-1
+            estimatedDuration: 10 seconds
+          - id: commit-3
+            name: Trigger CI pipeline
+            type: automated
+            required: true
+            dependencies:
+              - commit-2
+            estimatedDuration: 5 seconds
+            tools:
+              - GitHub Actions
+              - Jenkins
+        nextPhases:
+          - build-and-test
+        requiresApproval: false
+
+      - id: build-and-test
+        name: Build and Test
+        description: Compile code and run automated tests
+        objectives:
+          - Build application
+          - Run unit tests
+          - Run integration tests
+          - Generate code coverage
+          - Run static analysis
+        deliverables:
+          - Build artifacts
+          - Test results
+          - Coverage reports
+          - Lint reports
+        entryConditions:
+          - Code committed
+          - CI triggered
+        exitConditions:
+          - Build successful
+          - All tests passing
+          - Coverage threshold met (80%)
+          - No critical lint issues
+        tasks:
+          - id: build-1
+            name: Install dependencies
+            type: automated
+            required: true
+            estimatedDuration: 2 minutes
+            tools:
+              - npm
+              - yarn
+          - id: build-2
+            name: Compile/build application
+            type: automated
+            required: true
+            dependencies:
+              - build-1
+            estimatedDuration: 3 minutes
+          - id: build-3
+            name: Run linter
+            type: automated
+            required: true
+            dependencies:
+              - build-1
+            estimatedDuration: 1 minute
+            tools:
+              - ESLint
+              - Prettier
+          - id: build-4
+            name: Run unit tests
+            type: automated
+            required: true
+            dependencies:
+              - build-2
+            estimatedDuration: 2 minutes
+            tools:
+              - Vitest
+              - Jest
+          - id: build-5
+            name: Run integration tests
+            type: automated
+            required: true
+            dependencies:
+              - build-2
+            estimatedDuration: 5 minutes
+          - id: build-6
+            name: Generate coverage report
+            type: automated
+            required: true
+            dependencies:
+              - build-4
+              - build-5
+            estimatedDuration: 1 minute
+          - id: build-7
+            name: Security scan
+            type: automated
+            required: true
+            dependencies:
+              - build-2
+            estimatedDuration: 2 minutes
+            tools:
+              - Snyk
+              - npm audit
+        nextPhases:
+          - deploy-dev
+        requiresApproval: false
+
+      - id: deploy-dev
+        name: Deploy to Development
+        description: Automated deployment to dev environment
+        objectives:
+          - Deploy to dev environment
+          - Run smoke tests
+          - Verify deployment
+        deliverables:
+          - Running application in dev
+          - Smoke test results
+        entryConditions:
+          - Tests passing
+          - Build successful
+        exitConditions:
+          - Deployment successful
+          - Smoke tests passing
+          - Health checks passing
+        tasks:
+          - id: dev-1
+            name: Deploy to dev environment
+            type: automated
+            required: true
+            estimatedDuration: 3 minutes
+            tools:
+              - Kubernetes
+              - Docker
+          - id: dev-2
+            name: Run smoke tests
+            type: automated
+            required: true
+            dependencies:
+              - dev-1
+            estimatedDuration: 2 minutes
+          - id: dev-3
+            name: Health check
+            type: automated
+            required: true
+            dependencies:
+              - dev-1
+            estimatedDuration: 30 seconds
+        nextPhases:
+          - deploy-staging
+        requiresApproval: false
+
+      - id: deploy-staging
+        name: Deploy to Staging
+        description: Deploy to staging for final validation
+        objectives:
+          - Deploy to staging environment
+          - Run E2E tests
+          - Performance testing
+          - UAT approval
+        deliverables:
+          - Running application in staging
+          - E2E test results
+          - Performance metrics
+          - UAT sign-off
+        entryConditions:
+          - Dev deployment successful
+        exitConditions:
+          - Staging deployment successful
+          - E2E tests passing
+          - Performance acceptable
+          - UAT approved
+        tasks:
+          - id: staging-1
+            name: Deploy to staging
+            type: automated
+            required: true
+            estimatedDuration: 5 minutes
+            tools:
+              - Kubernetes
+              - ArgoCD
+          - id: staging-2
+            name: Run E2E tests
+            type: automated
+            required: true
+            dependencies:
+              - staging-1
+            estimatedDuration: 10 minutes
+            tools:
+              - Playwright
+              - Cypress
+          - id: staging-3
+            name: Run performance tests
+            type: automated
+            required: false
+            dependencies:
+              - staging-1
+            estimatedDuration: 15 minutes
+            tools:
+              - k6
+              - JMeter
+          - id: staging-4
+            name: Manual UAT
+            type: review
+            required: true
+            dependencies:
+              - staging-2
+            estimatedDuration: 2 hours
+        nextPhases:
+          - deploy-production
+        requiresApproval: true
+
+      - id: deploy-production
+        name: Deploy to Production
+        description: Controlled production deployment
+        objectives:
+          - Blue-green deployment
+          - Monitor metrics
+          - Gradual rollout
+          - Verify production
+        deliverables:
+          - Production deployment
+          - Rollout metrics
+          - Monitoring dashboards
+        entryConditions:
+          - Staging validated
+          - UAT approved
+          - Change window open
+        exitConditions:
+          - Production deployment successful
+          - Metrics healthy
+          - No errors detected
+        tasks:
+          - id: prod-1
+            name: Start blue-green deployment
+            type: automated
+            required: true
+            estimatedDuration: 2 minutes
+            tools:
+              - Kubernetes
+              - ArgoCD
+          - id: prod-2
+            name: Deploy to 10% of traffic
+            type: automated
+            required: true
+            dependencies:
+              - prod-1
+            estimatedDuration: 3 minutes
+          - id: prod-3
+            name: Monitor canary metrics (15 min)
+            type: automated
+            required: true
+            dependencies:
+              - prod-2
+            estimatedDuration: 15 minutes
+            tools:
+              - Datadog
+              - Prometheus
+          - id: prod-4
+            name: Deploy to 50% of traffic
+            type: automated
+            required: true
+            dependencies:
+              - prod-3
+            estimatedDuration: 3 minutes
+          - id: prod-5
+            name: Monitor metrics (15 min)
+            type: automated
+            required: true
+            dependencies:
+              - prod-4
+            estimatedDuration: 15 minutes
+          - id: prod-6
+            name: Deploy to 100% of traffic
+            type: automated
+            required: true
+            dependencies:
+              - prod-5
+            estimatedDuration: 3 minutes
+          - id: prod-7
+            name: Verify production deployment
+            type: manual
+            required: true
+            dependencies:
+              - prod-6
+            estimatedDuration: 10 minutes
+          - id: prod-8
+            name: Update status page
+            type: manual
+            required: false
+            dependencies:
+              - prod-7
+            estimatedDuration: 5 minutes
+        nextPhases: []
+        requiresApproval: true
+
+    transitions:
+      - from: commit
+        to: build-and-test
+        conditions:
+          - Pre-commit checks passed
+      - from: build-and-test
+        to: deploy-dev
+        conditions:
+          - All tests passing
+          - Coverage >= 80%
+          - No critical security issues
+      - from: deploy-dev
+        to: deploy-staging
+        conditions:
+          - Dev deployment successful
+          - Smoke tests passing
+      - from: deploy-staging
+        to: deploy-production
+        conditions:
+          - E2E tests passing
+          - UAT approved
+          - Change window open
+        requiresApproval: true
+        approvers:
+          - Release Manager
+          - Engineering Lead
+
+    globalSettings:
+      requireApprovalForTransitions: false
+      defaultApprovers:
+        - DevOps Team
+      notificationChannels:
+        - slack
+        - email
+      timeoutSettings:
+        phaseTimeout: 4 hours
+        taskTimeout: 30 minutes
+        approvalTimeout: 1 hour
+        warningThreshold: 85
+      integrations:
+        githubEnabled: true
+        slackEnabled: true
+        datadogEnabled: true
+
+environments:
+  - name: development
+    description: Development environment
+    featureFlags:
+      autoApproval: true
+      skipPerformanceTests: true
+      enableDebugLogging: true
+    variables:
+      COVERAGE_THRESHOLD: "70"
+      DEPLOYMENT_TIMEOUT: "600"
+
+  - name: staging
+    description: Staging environment
+    featureFlags:
+      autoApproval: false
+      skipPerformanceTests: false
+    variables:
+      COVERAGE_THRESHOLD: "80"
+      DEPLOYMENT_TIMEOUT: "900"
+
+  - name: production
+    description: Production environment
+    overrides:
+      requireApprovalForTransitions: true
+      defaultApprovers:
+        - Release Manager
+        - Engineering Lead
+        - VP Engineering
+    featureFlags:
+      autoApproval: false
+      enhancedMonitoring: true
+      canaryDeployment: true
+      autoRollback: true
+    variables:
+      COVERAGE_THRESHOLD: "85"
+      DEPLOYMENT_TIMEOUT: "1800"
+      CANARY_PERCENTAGE: "10,50,100"
+      MONITORING_WINDOW: "15"
+
+defaultWorkflow: ci-cd-pipeline
+defaultEnvironment: development
+metadata:
+  author: metaGOTHIC Framework
+  version: 1.0.0
+  lastUpdated: 2025-01-01
+  tags:
+    - ci-cd
+    - automation
+    - deployment
+    - continuous-delivery

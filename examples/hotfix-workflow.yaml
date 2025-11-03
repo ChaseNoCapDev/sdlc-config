@@ -1,0 +1,290 @@
+# Hotfix Workflow Example
+#
+# Emergency workflow for critical production issues:
+# - Fast-tracked approval process
+# - Minimal required tasks
+# - Immediate deployment
+# - Post-incident review
+
+version: 1.0.0
+workflows:
+  - id: hotfix-workflow
+    name: Emergency Hotfix Workflow
+    description: Fast-tracked workflow for critical production issues
+    version: 1.0.0
+    initialPhase: triage
+    phases:
+      - id: triage
+        name: Incident Triage
+        description: Assess severity and impact
+        objectives:
+          - Verify the issue
+          - Assess severity
+          - Notify stakeholders
+          - Decide on hotfix or workaround
+        deliverables:
+          - Incident report
+          - Impact assessment
+          - Communication to stakeholders
+        entryConditions:
+          - Production incident reported
+        exitConditions:
+          - Severity confirmed
+          - Hotfix approved
+        tasks:
+          - id: triage-1
+            name: Reproduce issue
+            type: manual
+            required: true
+            estimatedDuration: 15 minutes
+          - id: triage-2
+            name: Assess impact
+            type: manual
+            required: true
+            dependencies:
+              - triage-1
+            estimatedDuration: 10 minutes
+          - id: triage-3
+            name: Notify stakeholders
+            type: manual
+            required: true
+            dependencies:
+              - triage-2
+            estimatedDuration: 5 minutes
+            tools:
+              - PagerDuty
+              - Slack
+          - id: triage-4
+            name: Get emergency approval
+            type: review
+            required: true
+            dependencies:
+              - triage-3
+            estimatedDuration: 10 minutes
+        nextPhases:
+          - hotfix-development
+        requiresApproval: true
+
+      - id: hotfix-development
+        name: Hotfix Development
+        description: Quick fix implementation
+        objectives:
+          - Identify root cause
+          - Implement minimal fix
+          - Add regression test
+        deliverables:
+          - Hotfix code
+          - Regression test
+          - Fix verification
+        entryConditions:
+          - Root cause identified
+          - Approval obtained
+        exitConditions:
+          - Fix implemented
+          - Test added
+          - Code reviewed
+        tasks:
+          - id: fix-1
+            name: Implement fix
+            type: manual
+            required: true
+            estimatedDuration: 30 minutes
+          - id: fix-2
+            name: Write regression test
+            type: manual
+            required: true
+            dependencies:
+              - fix-1
+            estimatedDuration: 15 minutes
+          - id: fix-3
+            name: Run all tests
+            type: automated
+            required: true
+            dependencies:
+              - fix-2
+            estimatedDuration: 5 minutes
+          - id: fix-4
+            name: Emergency code review
+            type: review
+            required: true
+            dependencies:
+              - fix-3
+            estimatedDuration: 10 minutes
+        nextPhases:
+          - emergency-deployment
+        requiresApproval: true
+
+      - id: emergency-deployment
+        name: Emergency Deployment
+        description: Fast-tracked deployment to production
+        objectives:
+          - Deploy hotfix immediately
+          - Verify fix in production
+          - Monitor for side effects
+        deliverables:
+          - Deployed hotfix
+          - Verification results
+          - Monitoring alerts
+        entryConditions:
+          - Tests passing
+          - Code reviewed
+          - Deployment approved
+        exitConditions:
+          - Hotfix deployed
+          - Issue resolved
+          - Monitoring active
+        tasks:
+          - id: deploy-1
+            name: Deploy to production
+            type: automated
+            required: true
+            estimatedDuration: 10 minutes
+            tools:
+              - CI/CD pipeline
+              - Kubernetes
+          - id: deploy-2
+            name: Verify fix in production
+            type: manual
+            required: true
+            dependencies:
+              - deploy-1
+            estimatedDuration: 15 minutes
+          - id: deploy-3
+            name: Monitor for 30 minutes
+            type: manual
+            required: true
+            dependencies:
+              - deploy-2
+            estimatedDuration: 30 minutes
+            tools:
+              - Datadog
+              - CloudWatch
+          - id: deploy-4
+            name: Notify resolution
+            type: manual
+            required: true
+            dependencies:
+              - deploy-3
+            estimatedDuration: 5 minutes
+        nextPhases:
+          - post-incident
+        requiresApproval: false
+
+      - id: post-incident
+        name: Post-Incident Review
+        description: Learn from the incident
+        objectives:
+          - Document incident timeline
+          - Identify root cause
+          - Create improvement tasks
+          - Update runbooks
+        deliverables:
+          - Incident report
+          - Root cause analysis
+          - Action items
+          - Updated documentation
+        entryConditions:
+          - Issue resolved
+          - System stable
+        exitConditions:
+          - RCA completed
+          - Action items created
+          - Documentation updated
+        tasks:
+          - id: review-1
+            name: Write incident report
+            type: manual
+            required: true
+            estimatedDuration: 1 hour
+          - id: review-2
+            name: Root cause analysis
+            type: manual
+            required: true
+            dependencies:
+              - review-1
+            estimatedDuration: 1 hour
+          - id: review-3
+            name: Create action items
+            type: manual
+            required: true
+            dependencies:
+              - review-2
+            estimatedDuration: 30 minutes
+          - id: review-4
+            name: Update runbooks
+            type: manual
+            required: true
+            dependencies:
+              - review-2
+            estimatedDuration: 30 minutes
+        nextPhases: []
+        requiresApproval: false
+
+    transitions:
+      - from: triage
+        to: hotfix-development
+        conditions:
+          - Hotfix approved
+          - Severity confirmed as critical
+        requiresApproval: true
+        approvers:
+          - On-Call Engineer
+          - Engineering Manager
+      - from: hotfix-development
+        to: emergency-deployment
+        conditions:
+          - Tests passing
+          - Code reviewed
+        requiresApproval: true
+        approvers:
+          - Senior Engineer
+      - from: emergency-deployment
+        to: post-incident
+        conditions:
+          - Fix verified in production
+          - System stable
+
+    globalSettings:
+      requireApprovalForTransitions: true
+      defaultApprovers:
+        - On-Call Engineer
+        - Engineering Manager
+      notificationChannels:
+        - pagerduty
+        - slack
+        - email
+      timeoutSettings:
+        phaseTimeout: 4 hours
+        taskTimeout: 30 minutes
+        approvalTimeout: 10 minutes
+        warningThreshold: 90
+
+environments:
+  - name: production
+    description: Production hotfix
+    overrides:
+      requireApprovalForTransitions: true
+      defaultApprovers:
+        - On-Call Engineer
+        - Engineering Manager
+        - VP Engineering
+    featureFlags:
+      autoApproval: false
+      enhancedMonitoring: true
+      emergencyMode: true
+    variables:
+      LOG_LEVEL: debug
+      ALERT_THRESHOLD: "99"
+      ROLLBACK_ENABLED: "true"
+
+defaultWorkflow: hotfix-workflow
+defaultEnvironment: production
+metadata:
+  author: metaGOTHIC Framework
+  version: 1.0.0
+  lastUpdated: 2025-01-01
+  tags:
+    - hotfix
+    - emergency
+    - incident
+    - production

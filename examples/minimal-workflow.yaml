@@ -1,0 +1,143 @@
+# Minimal SDLC Workflow Example
+#
+# This is a simple 3-phase workflow suitable for:
+# - Small projects or prototypes
+# - Solo developers
+# - Quick iterations
+# - Learning the SDLC config system
+
+version: 1.0.0
+workflows:
+  - id: minimal-workflow
+    name: Minimal Development Workflow
+    description: A lightweight workflow with just the essentials
+    version: 1.0.0
+    initialPhase: plan
+    phases:
+      - id: plan
+        name: Planning
+        description: Quick planning and design
+        objectives:
+          - Define what to build
+          - Outline basic architecture
+        deliverables:
+          - Brief requirements doc
+          - Basic design notes
+        entryConditions:
+          - Idea validated
+        exitConditions:
+          - Plan documented
+        tasks:
+          - id: plan-1
+            name: Document requirements
+            type: manual
+            required: true
+            estimatedDuration: 1 hour
+          - id: plan-2
+            name: Sketch architecture
+            type: manual
+            required: true
+            dependencies:
+              - plan-1
+            estimatedDuration: 30 minutes
+        nextPhases:
+          - build
+        requiresApproval: false
+
+      - id: build
+        name: Build
+        description: Implement and test
+        objectives:
+          - Write code
+          - Add tests
+        deliverables:
+          - Working code
+          - Test suite
+        entryConditions:
+          - Plan complete
+        exitConditions:
+          - Features implemented
+          - Tests passing
+        tasks:
+          - id: build-1
+            name: Implement features
+            type: manual
+            required: true
+            estimatedDuration: 4 hours
+          - id: build-2
+            name: Write tests
+            type: manual
+            required: true
+            dependencies:
+              - build-1
+            estimatedDuration: 1 hour
+          - id: build-3
+            name: Run tests
+            type: automated
+            required: true
+            dependencies:
+              - build-2
+            estimatedDuration: 5 minutes
+        nextPhases:
+          - deploy
+        requiresApproval: false
+
+      - id: deploy
+        name: Deploy
+        description: Ship it
+        objectives:
+          - Deploy to production
+          - Verify deployment
+        deliverables:
+          - Live application
+        entryConditions:
+          - Tests passing
+        exitConditions:
+          - Deployed successfully
+          - Health checks passing
+        tasks:
+          - id: deploy-1
+            name: Deploy to production
+            type: automated
+            required: true
+            estimatedDuration: 10 minutes
+          - id: deploy-2
+            name: Smoke test
+            type: manual
+            required: true
+            dependencies:
+              - deploy-1
+            estimatedDuration: 15 minutes
+        nextPhases: []
+        requiresApproval: false
+
+    transitions:
+      - from: plan
+        to: build
+        conditions:
+          - Plan documented
+      - from: build
+        to: deploy
+        conditions:
+          - Tests passing
+
+    globalSettings:
+      requireApprovalForTransitions: false
+      timeoutSettings:
+        phaseTimeout: 7 days
+        taskTimeout: 1 day
+
+environments:
+  - name: development
+    description: Local development
+    featureFlags:
+      autoApproval: true
+    variables:
+      LOG_LEVEL: debug
+
+defaultWorkflow: minimal-workflow
+defaultEnvironment: development
+metadata:
+  author: metaGOTHIC Framework
+  version: 1.0.0
+  lastUpdated: 2025-01-01
